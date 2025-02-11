@@ -1,0 +1,15 @@
+{
+    "cli": {
+        "implemented": {
+            "--build-cjs": {
+                "description": "Outputs CJS build",
+                "default": true
+            }
+        },
+        "not-implemented": {
+            "--testInProduction": {
+                "description": "We always test in production here 😈"
+            }
+        }
+    }
+}
