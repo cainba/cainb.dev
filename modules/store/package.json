@@ -1,0 +1,15 @@
+{
+    "name": "@cb/store",
+    "version": "1.0.0",
+    "description": "A store for managing cryptographically signed keypair values",
+    "type": "module",
+    "main": "index.ts",
+    "types": "./types/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./index.ts",
+            "types": "./types/index.d.ts",
+            "default": "./index.ts"
+        }
+    }
+}

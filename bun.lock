@@ -11,17 +11,21 @@
         "typescript": "^5.7.3",
       },
     },
+    "apps/ssl": {
+      "name": "@cb/ssl",
+      "version": "0.0.1",
+      "dependencies": {
+        "@cb/store": "workspace:*",
+      },
+    },
     "apps/store": {
       "name": "@cb/store",
       "version": "0.0.1",
       "bin": "./bin/keystore",
     },
-    "modules/log": {
-      "name": "@cb/log",
-      "version": "1.0.0",
-    },
   },
   "packages": {
+    "@cb/ssl": ["@cb/ssl@workspace:apps/ssl"],
 
     "@cb/store": ["@cb/store@workspace:apps/store"],
 
