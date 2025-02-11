@@ -39,9 +39,6 @@
       "./modules/**/types"
     ],
     "paths": {
-      "@types/cb": [
-        "modules/types"
-      ],
       "@cb/*": [
         "./*",
         "./modules/*"

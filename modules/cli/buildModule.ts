@@ -1,4 +1,4 @@
-import { cli } from "./buildConfig.json" with { type: "json"}
+import { cli } from "../../scripts/buildConfig.json" with { type: "json"}
 import { type BuildOutput, type BuildConfig, build } from "bun"
 import { join } from "node:path"
 

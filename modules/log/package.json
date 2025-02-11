@@ -1,0 +1,16 @@
+{
+    "name": "@cb/log",
+    "version": "1.0.0",
+    "main": "index.ts",
+    "types": "index.d.ts",
+    "type": "module",
+    "exports": {
+        "import": "./index.ts",
+        "types": "./index.d.ts",
+        "require": "./index.cjs"
+    },
+    "scripts": {
+        "lint": "tsc --noEmit ./",
+        "buildModule": "bun ../../scripts/build/buildModule.ts"
+    }
+}
