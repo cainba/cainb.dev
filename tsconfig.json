@@ -40,7 +40,7 @@
     ],
     "paths": {
       "@types/cb": [
-        "./types"
+        "modules/types"
       ],
       "@cb/*": [
         "./*",
