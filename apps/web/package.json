@@ -1,4 +1,13 @@
 {
     "name": "@cb/web",
-    "version": "1.0."
+    "version": "1.0.0",
+    "main": "index.ts",
+    "module": "index.ts",
+    "exports": {
+        ".": {
+            "import": "./index.ts",
+            "require": "./index.ts",
+            "types": "./types/index.d.ts"
+        }
+    }
 }

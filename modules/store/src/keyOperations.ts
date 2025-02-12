@@ -13,7 +13,7 @@
  */
 export async function generateKey({ keyLength }: { keyLength?: number } = {}): Promise<CryptoKey> {
     return crypto.subtle.generateKey(
-        { name: "AES-GCM", length: 256 },
+        { name: "AES-GCM", length: keyLength || 256 },
         true,
         ["encrypt", "decrypt"]
     )
