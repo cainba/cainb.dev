@@ -10,7 +10,8 @@
     "typescript": "^5.7.3"
   },
   "workspaces": [
-    "./modules/*"
+    "./modules/*",
+    "./apps/*"
   ],
   "scripts": {
     "build:modules": "bun --filter '*' buildModule"

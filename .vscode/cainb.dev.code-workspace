@@ -1,8 +1,14 @@
 {
-    "folders": [
-        {
-            "name": "cainb.dev",
-            "path": ".."
-        }
-    ]
+	"folders": [
+		{
+			"name": "cainb.dev",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/.git": true,
+			"**/node_modules": true
+		}
+	}
 }
