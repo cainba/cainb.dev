@@ -2,7 +2,6 @@ export namespace CF {
     export type NewlineEncoded = string & { readonly __newlineEncoded: unique symbol }
     export type RequestValidity = 7 | 30 | 90 | 365 | 730 | 1095 | 5475
     export type RequestType = "origin-rsa" | "origin-ecc" | "keyless-certificate"
-
     export namespace Auth {
         export type APIKey = { "X-Auth-Email": string, "X-Auth-Key": string }
         export type OriginCAKey = { "X-Auth-User-Service-Key": string }
@@ -12,44 +11,41 @@ export namespace CF {
         export interface CertCreate {
             success: boolean
             result: {
-                csr: string | "" | undefined
+                id: string
+                certificate?: string
+                csr: string
                 hostNames: string[]
                 request_type: RequestType
                 requested_validity: RequestValidity
-                id: string
             }
-            errors: Array<[
-                {
-                    code: number
-                    message: string
-                }]>,
-            messages: Array<[
-                {
-                    code: number
-                    message: string
-                }]>
+            errors: Array<{
+                code: number
+                message: string
+            }>
+            messages: Array<{
+                code: number
+                message: string
+            }>
         }
 
         export interface CertList {
             success: boolean
-            errors: Array<[
-                {
-                    code: number
-                    message: string
-                }]>
-            messages: Array<[
-                {
-                    code: number
-                    message: string
-                }]>
             result: Array<{
-                csr: string | "" | undefined
+                id: string
+                csr: string
                 hostNames: string[]
                 request_type: RequestType
                 requested_validity: RequestValidity
-                id: string
             }>
-            results_info: {
+            errors: Array<{
+                code: number
+                message: string
+            }>
+            messages: Array<{
+                code: number
+                message: string
+            }>
+            result_info: {
                 count: number
                 page: number
                 per_page: number
@@ -87,9 +83,9 @@ export namespace CF {
             } & (Auth.APIKey | Auth.OriginCAKey)
             body: {
                 csr: NewlineEncoded | "" | undefined
-                hostNames: string[]
-                requestType: RequestType
-                requestedValidity: RequestValidity
+                hostnames: string[]
+                request_type: RequestType
+                requested_validity: RequestValidity
             }
         }
 
@@ -123,6 +119,10 @@ export namespace CF {
     }
 }
 
-function assertNewLineEncoded(nls: string): asserts nls is CF.NewlineEncoded {
+export function assertNewLineEncoded(nls: string): asserts nls is CF.NewlineEncoded {
     if (!nls.includes("\n")) throw new Error("String `${nls} must contain new line characters")
+}
+export function formatPEM(type: "CERTIFICATE" | "PRIVATE KEY", content: string): string {
+    const cleaned = content.replace(/-----(BEGIN|END) .*-----|\n/g, "").trim()
+    return `-----BEGIN ${type}-----\n${cleaned}\n-----END ${type}-----`
 }

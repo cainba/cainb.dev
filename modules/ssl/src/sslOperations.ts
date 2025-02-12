@@ -6,155 +6,13 @@
  */
 
 import { $ } from "bun"
-import { KeyStore, generateKey } from "@cb/store"
+import { KeyStore, } from "@cb/store/index"
+import type { CF, SSLPair } from "../types"
 
-/**
- * @namespace CF
- * @description Cloudflare API types
- */
-export namespace CF {
-    export type NewlineEncoded = string & { readonly __newlineEncoded: unique symbol }
-    export type RequestValidity = 7 | 30 | 90 | 365 | 730 | 1095 | 5475
-    export type RequestType = "origin-rsa" | "origin-ecc" | "keyless-certificate"
+export function formatCSR(csr: string): CF.NewlineEncoded {
 
-    export namespace Auth {
-        export type APIKey = { "X-Auth-Email": string, "X-Auth-Key": string }
-        export type OriginCAKey = { "X-Auth-User-Service-Key": string }
-    }
-
-    export namespace Response {
-        export interface CertCreate {
-            success: boolean
-            result: {
-                csr: string
-                hostNames: string[]
-                request_type: RequestType
-                requested_validity: RequestValidity
-                id: string
-            }
-            errors: Array<[
-                {
-                    code: number
-                    message: string
-                }]>,
-            messages: Array<[
-                {
-                    code: number
-                    message: string
-                }]>
-        }
-
-        export interface CertList {
-            success: boolean
-            errors: Array<[
-                {
-                    code: number
-                    message: string
-                }]>
-            messages: Array<[
-                {
-                    code: number
-                    message: string
-                }]>
-            result: Array<{
-                csr: string
-                hostNames: string[]
-                request_type: RequestType
-                requested_validity: RequestValidity
-                id: string
-            }>
-            results_info: {
-                count: number
-                page: number
-                per_page: number
-                total_count: number
-            }
-        }
-
-        export interface CertGet {
-            success: boolean
-            result: {
-                csr: string
-                hostNames: string[]
-                request_type: RequestType
-                requested_validity: RequestValidity
-                id: string
-            }
-            errors: Array<[
-                {
-                    code: number
-                    message: string
-                }]>
-        }
-
-        export interface CertRevoke {
-            id: string
-            revoked_at: string
-        }
-    }
-
-    export namespace Request {
-        export interface CertCreate {
-            headers: {
-                "Content-Type": "application/json",
-            } & (Auth.APIKey | Auth.OriginCAKey)
-            body: {
-                csr: NewlineEncoded
-                hostNames: string[]
-                requestType: RequestType
-                requestedValidity: RequestValidity
-            }
-        }
-
-        export interface CertList {
-            params: {
-                "zone_id": string
-            }
-            headers: {
-                "Content-Type": "application/json",
-            } & (Auth.APIKey | Auth.OriginCAKey)
-        }
-
-        export interface CertGet {
-            params: {
-                "certificate_id": string
-            }
-            headers: {
-                "Content-Type": "application/json",
-            } & (Auth.APIKey | Auth.OriginCAKey)
-        }
-
-        export interface CertRevoke {
-            params: {
-                "certificate_id": string
-            }
-            headers: {
-                "Content-Type": "application/json",
-            } & (Auth.APIKey | Auth.OriginCAKey)
-        }
-    }
+    return csr.trim().replace(/\r\n/g, "\n") as CF.NewlineEncoded
 }
-
-/**
- * @interface SSLPair
- * @description Represents an SSL key pair
- */
-export interface SSLPair {
-    key: string
-    keyPath: string
-    csrPath: string
-}
-
-/**
- * @function assertNewLineEncoded
- * @description Asserts that a string contains newlines
- */
-function assertNewLineEncoded(nls: string): asserts nls is CF.NewlineEncoded {
-    if (!nls.includes("\n")) {
-        throw new Error(`String ${nls} must contain new line characters`)
-    }
-}
-
 /**
  * @function generateSSLPair
  * @description Generates a new SSL key pair and CSR using OpenSSL
@@ -163,7 +21,7 @@ async function generateSSLPair(
     commonName: string,
     hostNames: string[],
     tempDir: string = "/tmp"
-): Promise<SSLPair & { csr: CF.NewlineEncoded }> {
+): Promise<SSLPair & { keyPath: string, csrPath: string, csr: CF.NewlineEncoded }> {
     const timestamp = Date.now()
     const keyPath = `${tempDir}/server_${timestamp}.key`
     const csrPath = `${tempDir}/server_${timestamp}.csr`
@@ -202,13 +60,15 @@ ${hostNames.map((name, i) => `DNS.${i + 1} = ${name}`).join("\n")}
             Bun.file(csrPath).text()
         ])
 
-        assertNewLineEncoded(csr)
-
         return {
             key,
             keyPath,
             csrPath,
-            csr: csr as CF.NewlineEncoded
+            csr: csr as CF.NewlineEncoded,
+            name: "",
+            cert: "",
+            expiresAt: new Date(0),
+            createdAt: new Date()
         }
     } finally {
         await $`rm -f ${configPath} ${csrPath}`
@@ -219,7 +79,7 @@ ${hostNames.map((name, i) => `DNS.${i + 1} = ${name}`).join("\n")}
  * @function validateSSLPair
  * @description Validates an SSL key pair using OpenSSL
  */
-async function validateSSLPair(pair: SSLPair): Promise<boolean> {
+async function validateSSLPair(pair: SSLPair & { keyPath: string }): Promise<boolean> {
     try {
         const keyCheck = await $`openssl rsa -in ${pair.keyPath} -check -noout`
         return keyCheck.exitCode === 0
@@ -244,10 +104,6 @@ export class SSLManager {
         this.keyStore = keyStore
     }
 
-    /**
-     * @method generateAndStoreCertificate
-     * @description Generates a new SSL pair and creates a certificate
-     */
     async generateAndStoreCertificate({
         commonName,
         hostNames,
@@ -258,7 +114,7 @@ export class SSLManager {
         hostNames?: string[]
         requestType: CF.RequestType
         requestedValidity: CF.RequestValidity
-    }): Promise<CF.Response.CertCreate> {
+    }): Promise<{ cert: CF.Response.CertCreate, keyName: string }> {
         const finalHostnames = hostNames ?? this.hostNames
 
         if (!finalHostnames.length) {
@@ -272,23 +128,23 @@ export class SSLManager {
         }
 
         const keyName = `ssl_${commonName}_${Date.now()}`
-        await this.keyStore.saveKey(
-            await crypto.subtle.importKey(
-                "raw",
-                new TextEncoder().encode(sslPair.key),
-                "AES-GCM",
-                true,
-                ["encrypt", "decrypt"]
-            ),
-            keyName
-        )
+        await this.keyStore.storeSSLKey(keyName, sslPair.key)
+        console.log("Stored SSL key with name:", keyName)
 
-        return this.createCertificate({
+
+        const cert = await this.createCertificate({
             csr: sslPair.csr,
             hostNames: finalHostnames,
             requestType,
             requestedValidity
         })
+
+        return { cert, keyName }
+    }
+
+    isValidValidityPeriod(period: number): boolean {
+        const validPeriods = [15, 30, 45, 60, 75, 90]
+        return validPeriods.includes(period)
     }
 
     async createCertificate({
@@ -302,50 +158,59 @@ export class SSLManager {
         requestType: CF.RequestType
         requestedValidity: CF.RequestValidity
     }): Promise<CF.Response.CertCreate> {
+        console.log("Creating certificate with Cloudflare...")
+
+
+        const formattedCSR = formatCSR(csr)
+
+
+        if (requestType.toLowerCase() !== "origin-rsa") {
+            console.warn("Switching to origin-RSA as it's the only supported type")
+            requestType = "origin-rsa"
+        }
+
+        if (!this.isValidValidityPeriod(requestedValidity)) {
+            console.warn("Invalid validity period, defaulting to 90 days")
+            requestedValidity = 90
+        }
+
         const r: CF.Request.CertCreate = {
             headers: {
                 "Content-Type": "application/json",
                 ...this.auth
             },
             body: {
-                csr,
-                hostNames: hostNames ?? this.hostNames,
-                requestType,
-                requestedValidity
+                csr: formattedCSR,
+                hostnames: hostNames ?? this.hostNames,
+                request_type: requestType,
+                requested_validity: requestedValidity
             }
         }
+
+        console.log("Request details:", {
+            hostNames: r.body.hostnames,
+            requestType: r.body.request_type,
+            requestedValidity: r.body.requested_validity,
+            csrLength: formattedCSR.length
+        })
+
         const res = await fetch(this.cf_certUrl, {
             method: "POST",
             headers: r.headers,
             body: JSON.stringify(r.body)
         })
-        if (res.ok) {
-            const data = await res.json() as CF.Response.CertCreate
-            return data
-        }
-        else
-            throw new Error(`Error creating certificate: ${res.statusText}`)
-    }
 
-    async listCertificates(zoneId: string): Promise<CF.Response.CertList> {
-        const request: CF.Request.CertList = {
-            params: { zone_id: zoneId },
-            headers: {
-                "Content-Type": "application/json",
-                ...this.auth
-            }
+        if (!res.ok) {
+            const errorBody = await res.text()
+            console.error("Cloudflare API error:", {
+                status: res.status,
+                statusText: res.statusText,
+                body: errorBody
+            })
+            throw new Error(`Error creating certificate: ${res.statusText}\nDetails: ${errorBody}`)
         }
 
-        const response = await fetch(`${this.cf_certUrl}?zone_id=${zoneId}`, {
-            method: "GET",
-            headers: request.headers
-        })
-
-        if (!response.ok) {
-            throw new Error(`Failed to list certificates: ${response.statusText}`)
-        }
-
-        return response.json()
+        return res.json()
     }
 
     async getCertificate(certificateId: string): Promise<CF.Response.CertGet> {
@@ -390,6 +255,34 @@ export class SSLManager {
         return response.json()
     }
 
+    /**
+   * @method listCertificates
+   * @description List all certificates for a given zone
+   */
+    async listCertificates(zoneId: string): Promise<CF.Response.CertList> {
+        console.log("Listing certificates for zone:", zoneId)
+
+        const response = await fetch(`${this.cf_certUrl}?zone_id=${zoneId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                ...this.auth
+            }
+        })
+
+        if (!response.ok) {
+            const errorBody = await response.text()
+            console.error("Failed to list certificates:", {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorBody
+            })
+            throw new Error(`Failed to list certificates: ${response.statusText}\nDetails: ${errorBody}`)
+        }
+
+        return response.json()
+    }
+
     async scheduleKeyRotation(
         certificateId: string,
         intervalDays: number,
@@ -400,22 +293,20 @@ export class SSLManager {
         const rotate = async () => {
             try {
                 const cert = await this.getCertificate(certificateId)
-                const newKey = await generateKey()
-                await this.keyStore.saveKey(newKey, `${cert.result.id}_${Date.now()}`)
-
                 const currentCert = await this.getCertificate(certificateId)
-
                 const sslPair = await generateSSLPair(
                     currentCert.result.hostNames[0],
                     currentCert.result.hostNames
                 )
-
+                const keyName = `ssl_${currentCert.result.hostNames[0]}_${Date.now()}`
+                await this.keyStore.storeSSLKey(keyName, sslPair.key)
                 await this.createCertificate({
                     csr: sslPair.csr,
                     hostNames: currentCert.result.hostNames,
                     requestType: currentCert.result.request_type,
                     requestedValidity: currentCert.result.requested_validity
                 })
+
                 await this.revokeCertificate(certificateId)
 
                 callback?.()
