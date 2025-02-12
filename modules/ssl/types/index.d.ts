@@ -1,2 +1,2 @@
-export type * from "./cloudflare"
-export type * from "./ssl"
+export * from "./cloudflare"
+export * from "./ssl"

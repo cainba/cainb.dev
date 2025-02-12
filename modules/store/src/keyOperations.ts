@@ -13,7 +13,7 @@
  */
 export async function generateKey({ keyLength }: { keyLength?: number } = {}): Promise<CryptoKey> {
     return crypto.subtle.generateKey(
-        { name: "AES-GCM", length: 256 },
+        { name: "AES-GCM", length: keyLength || 256 },
         true,
         ["encrypt", "decrypt"]
     )
@@ -52,7 +52,7 @@ export async function importKey(keyData: Uint8Array): Promise<CryptoKey> {
  * @param key  - The key to encrypt the data with
  * @returns The encrypted result of the data
  */
-async function encrypt(data: string, key: CryptoKey): Promise<Uint8Array> {
+export async function encrypt(data: string, key: CryptoKey): Promise<Uint8Array> {
     const iv = crypto.getRandomValues(new Uint8Array(12))
     const encoder = new TextEncoder()
     const encoded = encoder.encode(data)
