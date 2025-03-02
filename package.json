@@ -13,6 +13,7 @@
     "./modules/*"
   ],
   "scripts": {
-    "build:modules": "bun --filter '*' buildModule"
+    "build:modules": "bun --filter '*' buildModule",
+    "build": "bun build ./index.ts --outdir=./dist --minify --target=bun --format=esm --naming=[dir]/[name].[ext]"
   }
 }

@@ -1,8 +1,8 @@
+import fontLoader from "./modules/web/src/middleware/fontLoader.ts"
+import requestLogger from "./modules/web/src/middleware/requestLogger.ts"
+import { assetLoader } from "@cainb/web"
 import { CainWebServer, type cbserver, type RequestContext } from "@cainb/web"
 import type { Server } from "bun"
-import requestLogger from "./modules/web/src/middleware/requestLogger.ts"
-import fontLoader from "./modules/web/src/middleware/fontLoader.ts"
-import { assetLoader } from "@cainb/web"
 const opts: cbserver = {
     development: false,
     hostname: "127.0.0.1",
@@ -10,6 +10,10 @@ const opts: cbserver = {
     idleTimeout: 1000,
     routers: {
 
+    },
+    tls: {
+        key: await Bun.file(String(Bun.env.SSL_KEY_PATH)).text(),
+        cert: await Bun.file(String(Bun.env.SSL_CERT_PATH)).text()
     },
     fetch: async (req: Request, server: Server) => {
         if (req.url === "/") {
