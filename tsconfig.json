@@ -8,11 +8,12 @@
     "module": "ESNext",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "noFallthroughCasesInSwitch": true,
     "noPropertyAccessFromIndexSignature": true,
-    "noEmit": true,
+    "noEmit": false,
+    "outDir": "./dist",
+    "declaration": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitAny": true,
@@ -20,6 +21,7 @@
     "declarationMap": true,
     "strict": true,
     "skipLibCheck": true,
+    "emitDeclarationOnly": false,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictBuiltinIteratorReturn": true,
@@ -33,11 +35,6 @@
     "composite": true,
     "esModuleInterop": true,
     "baseUrl": ".",
-    "typeRoots": [
-      "./node_modules/@types",
-      "./apps/**/types",
-      "./modules/**/types"
-    ],
     "paths": {
       "@cb/*": [
         "./*",
@@ -46,7 +43,8 @@
     },
   },
   "include": [
-    "modules/**/*"
+    "modules/**/*",
+    "modules/web/src/config/*"
   ],
   "exclude": [
     "node_modules",

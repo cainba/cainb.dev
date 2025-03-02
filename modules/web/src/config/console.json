@@ -1,0 +1,13 @@
+{
+    "logging": {
+        "colorScheme": {
+            "method": "green",
+            "path": "magenta",
+            "url": "blue",
+            "headers": "gray",
+            "time": "cyan",
+            "status": "yellow",
+            "error": "red"
+        }
+    }
+}
