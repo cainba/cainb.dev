@@ -5,33 +5,29 @@
       "name": "cainb.dev",
       "devDependencies": {
         "@types/bun": "latest",
-        "@types/node": "^22.13.1",
+        "@types/node": "^22.13.4",
       },
       "peerDependencies": {
         "typescript": "^5.7.3",
       },
     },
-    "apps/ssl": {
-      "name": "@cb/ssl",
+    "modules/client": {
+      "name": "@cainb/client",
       "version": "0.0.1",
-      "dependencies": {
-        "@cb/store": "workspace:*",
-      },
     },
-    "apps/store": {
-      "name": "@cb/store",
+    "modules/web": {
+      "name": "@cainb/web",
       "version": "0.0.1",
-      "bin": "./bin/keystore",
     },
   },
   "packages": {
-    "@cb/ssl": ["@cb/ssl@workspace:apps/ssl"],
+    "@cainb/client": ["@cainb/client@workspace:modules/client"],
 
-    "@cb/store": ["@cb/store@workspace:apps/store"],
+    "@cainb/web": ["@cainb/web@workspace:modules/web"],
 
     "@types/bun": ["@types/bun@1.2.2", "", { "dependencies": { "bun-types": "1.2.2" } }, "sha512-tr74gdku+AEDN5ergNiBnplr7hpDp3V1h7fqI2GcR/rsUaM39jpSeKH0TFibRvU0KwniRx5POgaYnaXbk0hU+w=="],
 
-    "@types/node": ["@types/node@22.13.1", "", { "dependencies": { "undici-types": "~6.20.0" } }, "sha512-jK8uzQlrvXqEU91UxiK5J7pKHyzgnI1Qnl0QDHIgVGuolJhRb9EEl28Cj9b3rGR8B2lhFCtvIm5os8lFnO/1Ew=="],
+    "@types/node": ["@types/node@22.13.4", "", { "dependencies": { "undici-types": "~6.20.0" } }, "sha512-ywP2X0DYtX3y08eFVx5fNIw7/uIv8hYUKgXoK8oayJlLnKcRfEYCxWMVE1XagUdVtCJlZT1AU4LXEABW+L1Peg=="],
 
     "@types/ws": ["@types/ws@8.5.14", "", { "dependencies": { "@types/node": "*" } }, "sha512-bd/YFLW+URhBzMXurx7lWByOu+xzU9+kb3RboOteXYDfW+tr+JZa99OyNmPINEGB/ahzKrEuc8rcv4gnpJmxTw=="],
 

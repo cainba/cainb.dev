@@ -1,0 +1,27 @@
+{
+    "name": "@cainb/web",
+    "version": "0.0.1",
+    "type": "module",
+    "types": "./types/index.d.ts",
+    "main": "./index.ts",
+    "module": "./index.ts",
+    "author": {
+        "name": "Bryce Cain",
+        "email": "cainbryce208@gmail.com",
+        "url": "https://github.com/cainba"
+    },
+    "dependencies": {},
+    "devDependencies": {},
+    "peerDependencies": {},
+    "scripts": {
+        "install": "bun build ./index.ts --outdir=./dist --minify --target=bun --format=esm --naming=[dir]/[name].[ext]",
+        "types": "tsc --emitDeclarationOnly --outDir ./dist/types",
+        "clean": "rm -rf ./dist"
+    },
+    "exports": {
+        ".": {
+            "import": "./index.ts",
+            "types": "./types/index.d.ts"
+        }
+    }
+}

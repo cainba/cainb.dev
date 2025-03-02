@@ -1,0 +1,15 @@
+.r-grad {
+    background: linear-gradient(
+      to right,
+      #ff6b6b,
+      #4ecdc4,
+      #45b7d1,
+      #96c93d
+    );
+    height: 100vh;
+    margin: 0;
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }

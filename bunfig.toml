@@ -1,0 +1,12 @@
+logLevel = "debug"
+smol = false
+
+install.optional = true
+install.dev = true
+install.production = true
+install.lockfile.save = true
+install.saveTextLockfile = true
+
+test.coverage = true
+test.coverageDir = "coverage"
+test.coverageSkipTestFiles = false

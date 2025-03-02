@@ -1,6 +1,18 @@
 {
 	"folders": [
 		{
+			"name": "modules",
+			"path": "../modules"
+		},
+		{
+			"name": "scripts",
+			"path": "../scripts"
+		},
+		{
+			"name": "dist",
+			"path": "../dist"
+		},
+		{
 			"name": "cainb.dev",
 			"path": ".."
 		}
